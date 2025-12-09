@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Analytics | Professional Dashboard</title>
+    <title>InfoTik.VN | Phân Tích & Tải Video TikTok</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,6 +46,12 @@
                 radial-gradient(circle at 90% 80%, rgba(254, 44, 85, 0.15) 0%, transparent 20%);
             background-attachment: fixed;
         }
+        .glass-header {
+            background: rgba(15, 15, 19, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
         .glass-panel {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(16px);
@@ -63,46 +69,84 @@
         
         /* Loading Spinner */
         .loader {
-            border: 4px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.1);
             border-left-color: #25F4EE;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="text-gray-100 min-h-screen flex flex-col items-center py-10 px-4 font-sans">
+<body class="text-gray-100 min-h-screen flex flex-col items-center font-sans selection:bg-tiktok-pink selection:text-white">
 
-    <div class="w-full max-w-5xl z-10">
+    <!-- === HEADER / NAVBAR === -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-header px-4 md:px-8 py-4 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Logo Brand -->
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div class="relative w-10 h-10 flex items-center justify-center bg-white/5 rounded-xl border border-white/10 group-hover:border-tiktok-cyan/50 transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                    <i class="fa-brands fa-tiktok text-2xl text-white drop-shadow-lg"></i>
+                    <!-- Dot animation -->
+                    <span class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tiktok-pink opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-tiktok-pink"></span>
+                    </span>
+                </div>
+                <div class="flex flex-col leading-none">
+                    <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-tiktok-cyan transition-colors">
+                        InfoTik<span class="gradient-text">.VN</span>
+                    </span>
+                    <span class="text-[10px] text-gray-500 font-mono tracking-widest uppercase">Analytics Tool</span>
+                </div>
+            </a>
 
-        <!-- Header -->
-        <div class="text-center mb-10">
-            <div class="inline-block p-4 rounded-full bg-white/5 mb-4 border border-white/10 shadow-[0_0_25px_rgba(37,244,238,0.2)]">
-                <i class="fa-brands fa-tiktok text-4xl text-white"></i>
+            <!-- Right Menu (Desktop) -->
+            <div class="hidden md:flex items-center gap-6">
+                <a href="index.html" class="text-sm font-semibold text-white hover:text-tiktok-cyan transition-colors">Trang chủ</a>
+                <a href="#mediaSection" class="text-sm font-semibold text-gray-400 hover:text-white transition-colors">Tính năng</a>
+                <a href="https://fb.com/lenhanriel" target="_blank" class="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold uppercase tracking-wider hover:border-tiktok-pink transition-all">
+                    Liên hệ
+                </a>
             </div>
-            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-3">
-                TikTok <span class="gradient-text">Insider</span>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-2xl text-gray-300 hover:text-white">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- === MAIN CONTENT === -->
+    <div class="w-full max-w-5xl z-10 pt-32 px-4 pb-10">
+
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <span class="inline-block py-1 px-3 rounded-full bg-tiktok-cyan/10 text-tiktok-cyan border border-tiktok-cyan/20 text-xs font-bold uppercase tracking-widest mb-4 animate-pulse">
+                Version 2.1.0 (Stable Proxy)
+            </span>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white">
+                Tra cứu <span class="gradient-text">InfoTik.VN</span>
             </h1>
-            <p class="text-gray-400 text-sm md:text-base max-w-lg mx-auto">
-                Phân tích hồ sơ, tải video không logo & tải trọn bộ album ảnh. <br>
-                <span class="text-xs text-gray-500">(Phiên bản Serverless - Chạy trực tiếp trên trình duyệt)</span>
+            <p class="text-gray-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                Công cụ phân tích hồ sơ, tải video không logo và xem ảnh chất lượng cao. <br>
+                Hệ thống Proxy đa luồng đảm bảo kết nối ổn định.
             </p>
         </div>
 
         <!-- Search Form -->
-        <div class="glass-panel rounded-2xl p-2 mb-10 relative z-20">
+        <div class="glass-panel rounded-2xl p-2 mb-12 relative z-20 shadow-2xl shadow-black/50">
             <form id="searchForm" class="flex flex-col sm:flex-row gap-0">
                 <div class="relative flex-1 group">
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <i class="fa-solid fa-magnifying-glass text-gray-500 text-lg"></i>
+                    <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-gray-500 text-xl group-focus-within:text-tiktok-cyan transition-colors"></i>
                     </div>
                     <input 
                         id="usernameInput"
                         type="text"
-                        placeholder="Nhập ID (VD: nh4nz)..." 
-                        class="w-full pl-12 pr-4 py-4 bg-transparent border-none text-white placeholder-gray-600 focus:ring-0 focus:outline-none text-lg font-medium"
+                        placeholder="Nhập ID TikTok (VD: nh4nz) hoặc Link Video..." 
+                        class="w-full pl-14 pr-4 py-5 bg-transparent border-none text-white placeholder-gray-600 focus:ring-0 focus:outline-none text-lg font-medium"
                         required
                         autocomplete="off"
                     >
@@ -110,26 +154,31 @@
                 <button 
                     type="submit" 
                     id="searchBtn"
-                    class="m-1.5 px-8 py-3 rounded-xl bg-gradient-to-r from-tiktok-cyan to-tiktok-pink text-white font-bold text-lg shadow-lg hover:shadow-[0_0_20px_rgba(254,44,85,0.4)] transition-all flex items-center justify-center gap-2"
+                    class="m-1.5 px-8 py-3 rounded-xl bg-gradient-to-r from-tiktok-cyan to-tiktok-pink text-white font-bold text-lg shadow-lg hover:shadow-[0_0_25px_rgba(254,44,85,0.4)] transition-all flex items-center justify-center gap-3 transform active:scale-95 group"
                 >
-                    <span id="btnText">Phân Tích</span>
+                    <span id="btnText" class="group-hover:tracking-wider transition-all">Phân Tích</span>
                     <div id="btnLoader" class="loader hidden"></div>
                 </button>
             </form>
         </div>
 
         <!-- Error Message -->
-        <div id="errorMsg" class="hidden mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 flex items-center gap-3">
-            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-            <span id="errorText" class="font-medium">Lỗi kết nối</span>
+        <div id="errorMsg" class="hidden mb-8 p-5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-200 flex items-center gap-4 animate-bounce">
+            <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm uppercase mb-1">Đã xảy ra lỗi</h4>
+                <span id="errorText" class="text-sm opacity-90">Lỗi kết nối</span>
+            </div>
         </div>
 
-        <!-- CONTENT CONTAINER (Sẽ được JS điền vào) -->
+        <!-- RESULT CONTAINER -->
         <div id="resultContainer" class="hidden">
             
             <!-- 1. Profile Info -->
-            <div id="profileSection" class="glass-panel rounded-3xl p-6 md:p-10 mb-12 relative overflow-hidden">
-                <!-- Nội dung profile sẽ được render tại đây -->
+            <div id="profileSection" class="glass-panel rounded-3xl p-6 md:p-10 mb-12 relative overflow-hidden ring-1 ring-white/10">
+                <!-- Nội dung profile render bởi JS -->
             </div>
 
             <!-- 2. Media Content -->
@@ -141,17 +190,17 @@
                     </h2>
                     <div class="hidden sm:flex gap-3">
                         <div class="flex items-center gap-2 text-xs font-semibold text-gray-400 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
-                            <span class="w-2 h-2 rounded-full bg-tiktok-cyan"></span> Video
+                            <span class="w-2 h-2 rounded-full bg-tiktok-cyan shadow-[0_0_10px_#25F4EE]"></span> Video
                         </div>
                         <div class="flex items-center gap-2 text-xs font-semibold text-gray-400 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
-                            <span class="w-2 h-2 rounded-full bg-tiktok-pink"></span> Ảnh
+                            <span class="w-2 h-2 rounded-full bg-tiktok-pink shadow-[0_0_10px_#FE2C55]"></span> Ảnh
                         </div>
                     </div>
                 </div>
                 
                 <!-- Grid Video -->
                 <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-                    <!-- Cards sẽ được render tại đây -->
+                    <!-- Cards render bởi JS -->
                 </div>
             </div>
 
@@ -160,19 +209,33 @@
     </div>
 
     <!-- Footer -->
-    <footer class="mt-auto pt-10 pb-6 w-full max-w-5xl border-t border-white/5 text-center">
-        <p class="text-gray-500 text-sm font-medium">© 2025 TikTok Analytics. Serverless Version.</p>
+    <footer class="mt-auto py-8 w-full border-t border-white/5 bg-[#0a0a0c]">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+                <i class="fa-brands fa-tiktok"></i>
+                <span class="font-bold">InfoTik.VN</span>
+            </div>
+            
+            <p class="text-gray-600 text-sm font-medium">© 2025 Developed by Nh4nZ.</p>
+
+            <div class="flex gap-4">
+                <a href="https://fb.com/lenhanriel" target="_blank" class="text-gray-500 hover:text-blue-500 transition-colors"><i class="fa-brands fa-facebook text-lg"></i></a>
+                <a href="https://instagram.com/@nh4n.vn" target="_blank" class="text-gray-500 hover:text-pink-500 transition-colors"><i class="fa-brands fa-instagram text-lg"></i></a>
+                <a href="mailto:lenhancute1@gmail.com" class="text-gray-500 hover:text-green-500 transition-colors"><i class="fa-solid fa-envelope text-lg"></i></a>
+            </div>
+        </div>
     </footer>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // === CẤU HÌNH API ===
-        // Lưu ý: TikWM API có thể chặn request trực tiếp từ trình duyệt (CORS).
-        // Nếu bị lỗi, cần dùng Proxy. Code này dùng Proxy công cộng 'corsproxy.io' để lách luật.
         const BASE_API = "https://www.tikwm.com/api/"; 
-        const CORS_PROXY = "https://corsproxy.io/?"; 
+        
+        // Danh sách Proxy dự phòng (Auto switch nếu lỗi)
+        const PROXIES = [
+            "https://corsproxy.io/?",           // Proxy 1 (Nhanh nhưng đôi khi lỗi)
+            "https://api.allorigins.win/raw?url=" // Proxy 2 (Ổn định hơn)
+        ];
 
-        // Các Element DOM
         const searchForm = document.getElementById('searchForm');
         const usernameInput = document.getElementById('usernameInput');
         const searchBtn = document.getElementById('searchBtn');
@@ -184,7 +247,6 @@
         const profileSection = document.getElementById('profileSection');
         const videoGrid = document.getElementById('videoGrid');
 
-        // Hàm Format số (1000 -> 1K)
         function formatNumber(num) {
             if (!num) return '0';
             num = parseFloat(num);
@@ -193,24 +255,40 @@
             return num.toString();
         }
 
-        // Xử lý sự kiện Submit
+        // Hàm gọi API thông minh với đa luồng Proxy
+        async function fetchDataWithFallback(targetUrl) {
+            for (let i = 0; i < PROXIES.length; i++) {
+                const proxy = PROXIES[i];
+                // Thêm timestamp để tránh cache
+                const urlWithProxy = proxy + encodeURIComponent(targetUrl + '&_t=' + new Date().getTime());
+                
+                try {
+                    console.log(`Trying Proxy ${i+1}: ${proxy}`);
+                    const response = await fetch(urlWithProxy);
+                    if (!response.ok) throw new Error('Proxy error');
+                    
+                    const data = await response.json();
+                    return data; // Thành công trả về luôn
+                } catch (err) {
+                    console.warn(`Proxy ${i+1} failed. Trying next...`);
+                    // Tiếp tục vòng lặp thử proxy tiếp theo
+                }
+            }
+            throw new Error('All proxies failed');
+        }
+
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = usernameInput.value.trim().replace('@', '');
             if (!username) return;
 
-            // Reset UI
             errorMsg.classList.add('hidden');
             resultContainer.classList.add('hidden');
             setLoading(true);
 
             try {
-                // Gọi API lấy danh sách bài đăng (Bao gồm cả thông tin user)
-                // Dùng Proxy để tránh lỗi CORS
-                const apiUrl = `${CORS_PROXY}${encodeURIComponent(BASE_API + 'user/posts?unique_id=' + username + '&count=12')}`;
-                
-                const response = await fetch(apiUrl);
-                const json = await response.json();
+                const targetUrl = BASE_API + 'user/posts?unique_id=' + username + '&count=12';
+                const json = await fetchDataWithFallback(targetUrl);
 
                 if (json.code === 0 && json.data) {
                     renderData(json.data, username);
@@ -220,7 +298,7 @@
 
             } catch (err) {
                 console.error(err);
-                showError("Lỗi kết nối tới máy chủ (Có thể do chặn CORS hoặc mạng).");
+                showError("Hệ thống đang bận. Vui lòng thử lại sau vài giây.");
             } finally {
                 setLoading(false);
             }
@@ -246,60 +324,36 @@
         }
 
         function renderData(data, searchUsername) {
-            // Dữ liệu trả về từ tikwm có cấu trúc khác một chút so với HTML cũ
-            // data.videos là list video
-            // data.videos[0].author là thông tin user (lấy tạm từ video đầu tiên hoặc tìm cách khác)
-            
-            // TikWM endpoint /user/posts trả về data = { videos: [...], ... }
-            // Thông tin user nằm trong từng object video
-            
             const videos = data.videos || [];
             if (videos.length === 0) {
                 showError("Tài khoản này chưa có video nào hoặc là tài khoản riêng tư.");
                 return;
             }
 
-            const userInfo = videos[0].author; // Lấy thông tin từ video đầu tiên
-            
-            // --- 1. RENDER PROFILE ---
-            // Tính toán rank
-            // Lưu ý: TikWM đôi khi không trả về stats user chi tiết ở endpoint này
-            // nên ta dùng thông tin có sẵn trong author object
-            
-            // Giả lập số liệu follower (Vì endpoint user/posts của TikWM không trả follower chính xác của user mà trả video stats)
-            // Để lấy chính xác cần gọi thêm API user/info nhưng TikWM free hạn chế. 
-            // Ta sẽ hiển thị những gì có thể.
-            
+            const userInfo = videos[0].author;
             const avatar = userInfo.avatar || 'https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/0d243296068694002636544065660606~c5_720x720.jpeg';
             const nickname = userInfo.nickname;
             const unique_id = userInfo.unique_id;
-            
-            // Logic badge
-            let rankBadge = '';
-            // Vì không có số follower chính xác từ endpoint này, ta để mặc định hoặc ẩn
-            // Hoặc nếu bạn muốn chính xác, phải gọi thêm 1 API khác, nhưng sẽ làm chậm web.
             
             let htmlProfile = `
                 <div class="absolute -top-32 -right-32 w-96 h-96 bg-tiktok-pink/20 rounded-full blur-[100px] pointer-events-none"></div>
                 <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-tiktok-cyan/10 rounded-full blur-[100px] pointer-events-none"></div>
 
                 <div class="relative z-10 flex flex-col md:flex-row gap-8 md:gap-12 items-start">
-                    <!-- Avatar -->
                     <div class="flex flex-col items-center gap-5 w-full md:w-auto flex-shrink-0">
                         <div class="relative group">
                             <div class="absolute -inset-1 bg-gradient-to-tr from-tiktok-cyan to-tiktok-pink rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500"></div>
                             <img src="${avatar}" class="relative w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-[#121212] shadow-2xl">
                             ${unique_id.toLowerCase() === 'nh4nz' ? `
-                            <div class="absolute bottom-2 right-2 bg-[#20D5EC] text-white w-9 h-9 flex items-center justify-center rounded-full border-4 border-[#121212] text-sm shadow-md">
+                            <div class="absolute bottom-2 right-2 bg-[#20D5EC] text-white w-9 h-9 flex items-center justify-center rounded-full border-4 border-[#121212] text-sm shadow-md z-10">
                                 <i class="fa-solid fa-check"></i>
                             </div>` : ''}
                         </div>
                         <a href="${avatar}" target="_blank" class="w-full text-center text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white border border-gray-700 hover:border-tiktok-cyan hover:bg-tiktok-cyan/10 px-4 py-2.5 rounded-full transition-all duration-300">
-                            <i class="fa-solid fa-download mr-1"></i> Xem Avatar
+                            <i class="fa-solid fa-expand mr-1"></i> Xem Avatar
                         </a>
                     </div>
 
-                    <!-- Info -->
                     <div class="flex-1 w-full min-w-0">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                             <div>
@@ -308,33 +362,39 @@
                             </div>
                         </div>
                         
-                        <div class="bg-black/30 p-4 rounded-xl mb-6 border-l-4 border-tiktok-pink/50 backdrop-blur-sm">
+                        <div class="bg-black/30 p-5 rounded-xl mb-6 border-l-4 border-tiktok-pink/50 backdrop-blur-sm">
                             <p class="text-gray-300 text-sm md:text-base italic leading-relaxed">
-                                ID: ${userInfo.id} <br>
-                                (API TikWM Free không trả về Bio/Follower count ở endpoint này)
+                                <span class="font-bold text-white not-italic block mb-1">ID: ${userInfo.id}</span>
+                                Trạng thái: Công khai (Public)
                             </p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-[#1A1A1A] p-3 rounded-lg border border-white/5 text-center">
+                                <div class="text-gray-500 text-[10px] font-bold uppercase mb-1">Video Region</div>
+                                <div class="text-white font-bold text-lg">${userInfo.region || 'VN'}</div>
+                            </div>
+                            <div class="bg-[#1A1A1A] p-3 rounded-lg border border-white/5 text-center">
+                                <div class="text-gray-500 text-[10px] font-bold uppercase mb-1">Video Count</div>
+                                <div class="text-white font-bold text-lg">${videos.length}+</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
             profileSection.innerHTML = htmlProfile;
 
-            // --- 2. RENDER VIDEOS ---
             let htmlVideos = '';
             videos.forEach(v => {
-                // Phân loại: Ảnh hay Video?
-                // TikWM trả về images list nếu là post ảnh
                 const isImage = v.images && v.images.length > 0;
                 const title = v.title || 'Không có tiêu đề';
                 const playCount = formatNumber(v.play_count);
                 
-                // Card HTML
                 htmlVideos += `
                 <div class="group relative bg-[#181818] rounded-2xl overflow-hidden border border-white/5 hover:border-white/20 transition-all duration-300 hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.7)] hover:-translate-y-1 flex flex-col h-full">
                 `;
 
                 if (isImage) {
-                    // --- PHOTO MODE ---
                     let imagesHtml = '';
                     v.images.forEach(img => {
                         imagesHtml += `<div class="snap-center min-w-full h-full relative flex-shrink-0"><img src="${img}" loading="lazy" class="w-full h-full object-cover"></div>`;
@@ -343,7 +403,7 @@
                     htmlVideos += `
                         <div class="aspect-[9/16] w-full relative bg-black group-hover:shadow-inner">
                             <div class="absolute top-3 right-3 z-20 bg-black/70 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded border border-white/10 flex items-center gap-1.5 shadow-lg">
-                                <i class="fa-solid fa-layer-group text-tiktok-pink"></i> ${v.images.length} Ảnh
+                                <i class="fa-solid fa-layer-group text-tiktok-pink"></i> ${v.images.length}
                             </div>
                             <div class="flex overflow-x-auto snap-x snap-mandatory w-full h-full scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
                                 ${imagesHtml}
@@ -357,14 +417,13 @@
                         <div class="p-4 mt-auto border-t border-white/5 bg-[#181818]">
                             <p class="text-white text-sm font-medium line-clamp-1 mb-3 text-gray-300">${title}</p>
                             <a href="${v.music_info ? v.music_info.play : '#'}" target="_blank"
-                               class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-800 hover:bg-tiktok-pink text-gray-300 hover:text-white transition-all text-sm font-bold shadow-lg">
-                                <i class="fa-regular fa-images"></i> Xem Nhạc nền
+                               class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-800 hover:bg-tiktok-pink text-gray-300 hover:text-white transition-all text-sm font-bold shadow-lg group-hover:ring-1 group-hover:ring-tiktok-pink/30">
+                                <i class="fa-solid fa-music"></i> Tải Nhạc / Xem Ảnh
                             </a>
-                            <div class="text-xs text-center mt-2 text-gray-500">Click ảnh phải chuột để tải</div>
+                            <div class="text-[10px] text-center mt-2 text-gray-600">Lưu ý: Click chuột phải vào ảnh để tải</div>
                         </div>
                     `;
                 } else {
-                    // --- VIDEO MODE ---
                     htmlVideos += `
                         <div class="aspect-[9/16] w-full relative overflow-hidden bg-gray-900">
                             <img src="${v.cover}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700 opacity-90 group-hover:opacity-100">
@@ -385,18 +444,21 @@
                         <div class="p-4 mt-auto border-t border-white/5 bg-[#181818]">
                             <p class="text-white text-sm font-medium line-clamp-1 mb-3 text-gray-300">${title}</p>
                             <a href="${v.play}" target="_blank"
-                               class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-800 hover:bg-tiktok-cyan hover:text-black text-gray-300 transition-all text-sm font-bold shadow-lg">
+                               class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-800 hover:bg-tiktok-cyan hover:text-black text-gray-300 transition-all text-sm font-bold shadow-lg group-hover:ring-1 group-hover:ring-tiktok-cyan/30">
                                 <i class="fa-solid fa-download"></i> Tải Video
                             </a>
                         </div>
                     `;
                 }
 
-                htmlVideos += `</div>`; // Close card
+                htmlVideos += `</div>`; 
             });
 
             videoGrid.innerHTML = htmlVideos;
             resultContainer.classList.remove('hidden');
+            
+            // Auto scroll to result
+            profileSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
     </script>
