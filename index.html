@@ -133,14 +133,14 @@
         <!-- Hero Section -->
         <div class="text-center mb-10">
             <span class="inline-block py-1 px-3 rounded-full bg-tiktok-cyan/10 text-tiktok-cyan border border-tiktok-cyan/20 text-xs font-bold uppercase tracking-widest mb-4 animate-pulse">
-                Version 2.3.0 (Multi-Proxy)
+                Version 2.4.0 (Turbo Speed)
             </span>
             <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white">
                 Tra cứu <span class="gradient-text">InfoTik.VN</span>
             </h1>
             <p class="text-gray-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
                 Công cụ phân tích hồ sơ chuyên sâu & tải video không logo. <br>
-                Hệ thống tự động chuyển đổi Proxy để đảm bảo kết nối ổn định.
+                Tối ưu tốc độ tải và giao diện hiển thị thông minh.
             </p>
         </div>
 
@@ -240,11 +240,10 @@
         const BASE_API = "https://www.tikwm.com/api/"; 
         
         // --- PROXY ROTATION SYSTEM ---
-        // Sử dụng nhiều proxy khác nhau để tránh bị chặn hoặc quá tải
         const PROXIES = [
-            "https://api.codetabs.com/v1/proxy?quest=", // Proxy 1: Thường ổn định
-            "https://corsproxy.io/?",                   // Proxy 2: Nhanh nhưng hay lỗi
-            "https://api.allorigins.win/raw?url="       // Proxy 3: Fallback cuối cùng
+            "https://api.codetabs.com/v1/proxy?quest=", // Proxy 1
+            "https://corsproxy.io/?",                   // Proxy 2
+            "https://api.allorigins.win/raw?url="       // Proxy 3
         ];
 
         const searchForm = document.getElementById('searchForm');
@@ -272,11 +271,21 @@
             return date.toLocaleDateString('vi-VN');
         }
 
-        // Hàm fetch thông minh: Tự động thử các Proxy nếu cái đầu tiên thất bại
+        // Tăng tốc: Fetch có timeout để failover nhanh hơn
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 5000 } = options; // 5s timeout mặc định
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(resource, {
+                ...options,
+                signal: controller.signal  
+            });
+            clearTimeout(id);
+            return response;
+        }
+
         async function fetchDataWithFallback(targetUrl) {
             let lastError;
-            
-            // Thêm timestamp để tránh cache trình duyệt
             const urlWithParams = targetUrl + '&_t=' + new Date().getTime();
 
             for (let i = 0; i < PROXIES.length; i++) {
@@ -284,21 +293,18 @@
                 const urlWithProxy = proxy + encodeURIComponent(urlWithParams);
                 
                 try {
-                    console.log(`[InfoTik] Đang thử kết nối qua Proxy ${i+1}: ${proxy}`);
-                    const response = await fetch(urlWithProxy);
+                    // console.log(`[InfoTik] Thử Proxy ${i+1}...`);
+                    // Sử dụng fetchWithTimeout thay vì fetch thường
+                    const response = await fetchWithTimeout(urlWithProxy, { timeout: 4000 }); // 4s timeout cho mỗi proxy
                     
-                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                    
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     
-                    // Nếu dữ liệu trả về OK
-                    if(data) {
-                        return data; 
-                    }
+                    if(data) return data; 
                 } catch (err) {
-                    console.warn(`[InfoTik] Proxy ${i+1} thất bại:`, err);
+                    // console.warn(`[InfoTik] Proxy ${i+1} fail:`, err.name);
                     lastError = err;
-                    // Tự động nhảy sang vòng lặp kế tiếp để thử Proxy khác
+                    // Tiếp tục thử cái kế tiếp
                 }
             }
             throw lastError || new Error('Tất cả Proxy đều không phản hồi.');
@@ -314,21 +320,28 @@
             setLoading(true);
 
             try {
-                // 1. Lấy danh sách Video (Quan trọng nhất)
                 const postsUrl = BASE_API + 'user/posts?unique_id=' + username + '&count=12';
-                const postsData = await fetchDataWithFallback(postsUrl);
+                const infoUrl = BASE_API + 'user/info?unique_id=' + username;
 
-                // 2. Lấy thông tin chi tiết User (Không bắt buộc)
-                // Chạy riêng để nếu lỗi cũng không ảnh hưởng việc hiển thị video
+                // --- TĂNG TỐC: CHẠY SONG SONG (PARALLEL) ---
+                // Thay vì chờ posts xong mới gọi info, ta gọi cả 2 cùng lúc
+                const [postsDataResult, infoDataResult] = await Promise.allSettled([
+                    fetchDataWithFallback(postsUrl),
+                    fetchDataWithFallback(infoUrl)
+                ]);
+
+                // Xử lý kết quả Posts
+                let postsData = null;
+                if (postsDataResult.status === 'fulfilled') {
+                    postsData = postsDataResult.value;
+                } else {
+                    throw new Error("Không thể lấy dữ liệu bài đăng.");
+                }
+
+                // Xử lý kết quả Info (Nếu lỗi thì vẫn hiện web bình thường, chỉ thiếu info chi tiết)
                 let userFullInfo = null;
-                try {
-                    const infoUrl = BASE_API + 'user/info?unique_id=' + username;
-                    const infoData = await fetchDataWithFallback(infoUrl);
-                    if (infoData.code === 0) {
-                        userFullInfo = infoData.data;
-                    }
-                } catch (infoErr) {
-                    console.warn("Không lấy được full info, sử dụng info cơ bản.", infoErr);
+                if (infoDataResult.status === 'fulfilled' && infoDataResult.value.code === 0) {
+                    userFullInfo = infoDataResult.value.data;
                 }
 
                 if (postsData.code === 0 && postsData.data) {
@@ -339,7 +352,7 @@
 
             } catch (err) {
                 console.error(err);
-                showError("Hệ thống đang quá tải hoặc bị chặn. Vui lòng thử lại sau 30 giây.");
+                showError("Mạng quá chậm hoặc Proxy bị chặn. Vui lòng thử lại sau giây lát.");
             } finally {
                 setLoading(false);
             }
@@ -371,7 +384,6 @@
                 return;
             }
 
-            // Merge thông tin từ 2 nguồn (posts và info)
             const basicInfo = videos[0].author;
             const fullUser = userFullInfo ? userFullInfo.user : {};
             const stats = userFullInfo ? userFullInfo.stats : {};
@@ -388,13 +400,11 @@
             const heartCount = formatNumber(stats.heartCount);
             const videoCount = formatNumber(stats.videoCount || videos.length);
             
-            // --- Render Profile ---
             let htmlProfile = `
                 <div class="absolute -top-32 -right-32 w-96 h-96 bg-tiktok-pink/10 rounded-full blur-[100px] pointer-events-none"></div>
                 <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-tiktok-cyan/5 rounded-full blur-[100px] pointer-events-none"></div>
 
                 <div class="relative z-10 flex flex-col md:flex-row gap-8 items-start">
-                    <!-- Avatar -->
                     <div class="flex flex-col items-center gap-4 w-full md:w-auto flex-shrink-0">
                         <div class="relative group">
                             <div class="absolute -inset-0.5 bg-gradient-to-tr from-tiktok-cyan to-tiktok-pink rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500"></div>
@@ -409,7 +419,6 @@
                         </a>
                     </div>
 
-                    <!-- Info -->
                     <div class="flex-1 w-full min-w-0">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
                             <div>
@@ -427,7 +436,6 @@
                             ${bio}
                         </div>
 
-                        <!-- Stats -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <div class="stat-card p-3 rounded-xl text-center">
                                 <div class="text-gray-500 text-[10px] font-bold uppercase mb-1 tracking-wider">Followers</div>
@@ -451,7 +459,7 @@
             `;
             profileSection.innerHTML = htmlProfile;
 
-            // --- Render Videos (Fix stretched layout) ---
+            // --- Render Videos (FIX: Compact Aspect Ratio) ---
             let htmlVideos = '';
             videos.forEach(v => {
                 const isImage = v.images && v.images.length > 0;
@@ -459,6 +467,8 @@
                 const playCount = formatNumber(v.play_count);
                 const duration = v.duration ? (v.duration / 1000).toFixed(0) + 's' : '';
                 
+                // Thay đổi quan trọng: chuyển aspect-[9/16] (quá dài) thành aspect-[3/4] (gọn hơn)
+                // Tailwind có thể cần config thêm cho [3/4], nhưng ta dùng arbitrary value [3/4] là chuẩn JIT
                 htmlVideos += `
                 <div class="group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
                 `;
@@ -472,8 +482,9 @@
                         </div>`;
                     });
 
+                    // Thay đổi aspect ratio ở đây
                     htmlVideos += `
-                        <div class="aspect-[9/16] w-full relative bg-black group-hover:shadow-inner">
+                        <div class="aspect-[3/4] w-full relative bg-black group-hover:shadow-inner">
                             <div class="absolute top-2 right-2 z-20 bg-black/60 backdrop-blur text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1">
                                 <i class="fa-solid fa-images text-tiktok-pink"></i> ${v.images.length}
                             </div>
@@ -485,7 +496,7 @@
                             </div>
                         </div>
                         <div class="p-3 mt-auto border-t border-white/5 bg-[#181818]">
-                            <p class="text-gray-300 text-xs line-clamp-2 mb-2 h-8 leading-4">${title}</p>
+                            <p class="text-gray-300 text-xs line-clamp-1 mb-2 h-4 leading-4">${title}</p>
                             <a href="${v.music_info ? v.music_info.play : '#'}" target="_blank"
                                class="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-gray-800 hover:bg-tiktok-pink text-gray-400 hover:text-white transition-all text-xs font-bold">
                                 <i class="fa-solid fa-download"></i> Tải Ảnh
@@ -493,8 +504,9 @@
                         </div>
                     `;
                 } else {
+                    // Thay đổi aspect ratio ở đây
                     htmlVideos += `
-                        <div class="aspect-[9/16] w-full relative overflow-hidden bg-gray-900">
+                        <div class="aspect-[3/4] w-full relative overflow-hidden bg-gray-900">
                             <img src="${v.cover}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700 opacity-90 group-hover:opacity-100">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
                             
@@ -510,7 +522,7 @@
                             </div>
                         </div>
                         <div class="p-3 mt-auto border-t border-white/5 bg-[#181818]">
-                            <p class="text-gray-300 text-xs line-clamp-2 mb-2 h-8 leading-4">${title}</p>
+                            <p class="text-gray-300 text-xs line-clamp-1 mb-2 h-4 leading-4">${title}</p>
                             <a href="${v.play}" target="_blank"
                                class="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-gray-800 hover:bg-tiktok-cyan hover:text-black text-gray-400 transition-all text-xs font-bold">
                                 <i class="fa-solid fa-download"></i> Tải Video
