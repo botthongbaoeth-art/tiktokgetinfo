@@ -133,7 +133,7 @@
         <!-- Hero Section -->
         <div class="text-center mb-10">
             <span class="inline-block py-1 px-3 rounded-full bg-tiktok-cyan/10 text-tiktok-cyan border border-tiktok-cyan/20 text-xs font-bold uppercase tracking-widest mb-4 animate-pulse">
-                Version 2.4.0 (Turbo Speed)
+                Version 2.5.0 (Direct API)
             </span>
             <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 text-white">
                 Tra cứu <span class="gradient-text">InfoTik.VN</span>
@@ -239,13 +239,7 @@
     <script>
         const BASE_API = "https://www.tikwm.com/api/"; 
         
-        // --- PROXY ROTATION SYSTEM ---
-        const PROXIES = [
-            "https://api.codetabs.com/v1/proxy?quest=", // Proxy 1
-            "https://corsproxy.io/?",                   // Proxy 2
-            "https://api.allorigins.win/raw?url="       // Proxy 3
-        ];
-
+        // --- DIRECT API (NO PROXY) ---
         const searchForm = document.getElementById('searchForm');
         const usernameInput = document.getElementById('usernameInput');
         const searchBtn = document.getElementById('searchBtn');
@@ -271,45 +265,6 @@
             return date.toLocaleDateString('vi-VN');
         }
 
-        // Tăng tốc: Fetch có timeout để failover nhanh hơn
-        async function fetchWithTimeout(resource, options = {}) {
-            const { timeout = 5000 } = options; // 5s timeout mặc định
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
-            const response = await fetch(resource, {
-                ...options,
-                signal: controller.signal  
-            });
-            clearTimeout(id);
-            return response;
-        }
-
-        async function fetchDataWithFallback(targetUrl) {
-            let lastError;
-            const urlWithParams = targetUrl + '&_t=' + new Date().getTime();
-
-            for (let i = 0; i < PROXIES.length; i++) {
-                const proxy = PROXIES[i];
-                const urlWithProxy = proxy + encodeURIComponent(urlWithParams);
-                
-                try {
-                    // console.log(`[InfoTik] Thử Proxy ${i+1}...`);
-                    // Sử dụng fetchWithTimeout thay vì fetch thường
-                    const response = await fetchWithTimeout(urlWithProxy, { timeout: 4000 }); // 4s timeout cho mỗi proxy
-                    
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const data = await response.json();
-                    
-                    if(data) return data; 
-                } catch (err) {
-                    // console.warn(`[InfoTik] Proxy ${i+1} fail:`, err.name);
-                    lastError = err;
-                    // Tiếp tục thử cái kế tiếp
-                }
-            }
-            throw lastError || new Error('Tất cả Proxy đều không phản hồi.');
-        }
-
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = usernameInput.value.trim().replace('@', '');
@@ -320,39 +275,43 @@
             setLoading(true);
 
             try {
+                // Gọi trực tiếp API không qua Proxy
                 const postsUrl = BASE_API + 'user/posts?unique_id=' + username + '&count=12';
                 const infoUrl = BASE_API + 'user/info?unique_id=' + username;
 
-                // --- TĂNG TỐC: CHẠY SONG SONG (PARALLEL) ---
-                // Thay vì chờ posts xong mới gọi info, ta gọi cả 2 cùng lúc
-                const [postsDataResult, infoDataResult] = await Promise.allSettled([
-                    fetchDataWithFallback(postsUrl),
-                    fetchDataWithFallback(infoUrl)
+                // Chạy song song (Parallel Fetch)
+                const [postsResponse, infoResponse] = await Promise.allSettled([
+                    fetch(postsUrl),
+                    fetch(infoUrl)
                 ]);
 
                 // Xử lý kết quả Posts
                 let postsData = null;
-                if (postsDataResult.status === 'fulfilled') {
-                    postsData = postsDataResult.value;
+                if (postsResponse.status === 'fulfilled') {
+                    if (!postsResponse.value.ok) throw new Error("HTTP Error " + postsResponse.value.status);
+                    postsData = await postsResponse.value.json();
                 } else {
-                    throw new Error("Không thể lấy dữ liệu bài đăng.");
+                    throw new Error("Không thể kết nối tới API Video.");
                 }
 
-                // Xử lý kết quả Info (Nếu lỗi thì vẫn hiện web bình thường, chỉ thiếu info chi tiết)
+                // Xử lý kết quả Info (Optional)
                 let userFullInfo = null;
-                if (infoDataResult.status === 'fulfilled' && infoDataResult.value.code === 0) {
-                    userFullInfo = infoDataResult.value.data;
+                if (infoResponse.status === 'fulfilled' && infoResponse.value.ok) {
+                    const infoData = await infoResponse.value.json();
+                    if (infoData.code === 0) {
+                        userFullInfo = infoData.data;
+                    }
                 }
 
-                if (postsData.code === 0 && postsData.data) {
+                if (postsData && postsData.code === 0 && postsData.data) {
                     renderData(postsData.data, userFullInfo, username);
                 } else {
-                    showError(postsData.msg || "Không tìm thấy người dùng hoặc tài khoản Private.");
+                    showError(postsData?.msg || "Không tìm thấy người dùng hoặc tài khoản Private.");
                 }
 
             } catch (err) {
                 console.error(err);
-                showError("Mạng quá chậm hoặc Proxy bị chặn. Vui lòng thử lại sau giây lát.");
+                showError("Lỗi kết nối API trực tiếp (Có thể do CORS).");
             } finally {
                 setLoading(false);
             }
@@ -459,7 +418,7 @@
             `;
             profileSection.innerHTML = htmlProfile;
 
-            // --- Render Videos (FIX: Compact Aspect Ratio) ---
+            // --- Render Videos (Compact) ---
             let htmlVideos = '';
             videos.forEach(v => {
                 const isImage = v.images && v.images.length > 0;
@@ -467,8 +426,6 @@
                 const playCount = formatNumber(v.play_count);
                 const duration = v.duration ? (v.duration / 1000).toFixed(0) + 's' : '';
                 
-                // Thay đổi quan trọng: chuyển aspect-[9/16] (quá dài) thành aspect-[3/4] (gọn hơn)
-                // Tailwind có thể cần config thêm cho [3/4], nhưng ta dùng arbitrary value [3/4] là chuẩn JIT
                 htmlVideos += `
                 <div class="group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
                 `;
@@ -482,7 +439,6 @@
                         </div>`;
                     });
 
-                    // Thay đổi aspect ratio ở đây
                     htmlVideos += `
                         <div class="aspect-[3/4] w-full relative bg-black group-hover:shadow-inner">
                             <div class="absolute top-2 right-2 z-20 bg-black/60 backdrop-blur text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1">
@@ -504,7 +460,6 @@
                         </div>
                     `;
                 } else {
-                    // Thay đổi aspect ratio ở đây
                     htmlVideos += `
                         <div class="aspect-[3/4] w-full relative overflow-hidden bg-gray-900">
                             <img src="${v.cover}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700 opacity-90 group-hover:opacity-100">
